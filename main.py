@@ -20,7 +20,6 @@ def main():
 
 
 def get_user_input():
-    """コンソールからサーバーID、チャンネルID、トークンを取得"""
     server_id = input("Enter Server ID: ")
     channel_id = input("Enter Channel ID: ")
     token = input("Enter Token: ")
@@ -28,7 +27,6 @@ def get_user_input():
 
 
 def validate_token(token):
-    """Discord APIでトークンの有効性をチェック"""
     url = "https://discord.com/api/v9/users/@me/affinities/guilds"
     headers = {
         "authorization": token,
@@ -39,7 +37,6 @@ def validate_token(token):
 
 
 def scrape_members(token, server_id, channel_id):
-    """全メンバーをスクレイピングし、CSVに保存"""
     ws = connect_to_websocket()
 
     csv_filename = create_csv_if_not_exists(server_id)
@@ -48,7 +45,6 @@ def scrape_members(token, server_id, channel_id):
     start = 0
     retries = 5
 
-    # メインのループでバッチごとにメンバーを取得
     while True:
         try:
             message = json.loads(ws.recv())
@@ -77,7 +73,6 @@ def scrape_members(token, server_id, channel_id):
 
 
 def connect_to_websocket():
-    """WebSocketに接続する"""
     ws_url = "wss://gateway.discord.gg/?v=10&encoding=json"
     ws = websocket.WebSocket()
     ws.connect(ws_url)
@@ -86,7 +81,6 @@ def connect_to_websocket():
 
 def create_csv_if_not_exists(server_id):
     """CSVファイルが存在しない場合は作成する"""
-    csv_filename = f"discord_members_{server_id}.csv"
     if not os.path.exists(csv_filename):
         with open(csv_filename, mode='w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
@@ -95,7 +89,6 @@ def create_csv_if_not_exists(server_id):
 
 
 def process_member_list(message, csv_filename, scraped_users, batch_size):
-    """受信したメンバーリストを処理し、CSVに保存する"""
     items = message["d"].get("ops", [])
     has_more_data = False
 
@@ -108,13 +101,12 @@ def process_member_list(message, csv_filename, scraped_users, batch_size):
                         scraped_users.add(user_id)
                         save_to_csv(csv_filename, user_id)
             if len(item["items"]) == batch_size:
-                has_more_data = True  # まだ次のバッチがある
+                has_more_data = True 
 
     return scraped_users, has_more_data
 
 
 def request_member_list(ws, server_id, channel_id, start, end):
-    """指定した範囲のメンバーリストをリクエスト"""
     send_data = {
         "op": 14,
         "d": {
@@ -132,14 +124,12 @@ def request_member_list(ws, server_id, channel_id, start, end):
 
 
 def save_to_csv(csv_filename, user_id):
-    """取得したユーザーIDをCSVに保存"""
     with open(csv_filename, mode='a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow([user_id])
 
 
 def log_message(message):
-    """デバッグ用のログ出力"""
     print(message)
 
 
